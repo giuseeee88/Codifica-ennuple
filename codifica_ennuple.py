@@ -1,4 +1,30 @@
-import math
+def InserisciInput():
+    inputValido = False
+
+    while inputValido == False:
+        inputUtente = input("\nInserire il numero di coordinate della n-upla: ")
+        try:
+            coordinate = int(inputUtente)
+            inputValido = True
+        except:
+            print("Il numero di coordinate deve essere un numero intero positivo")
+            
+    tupla = AzzeraTupla(coordinate)
+
+    i = 0
+
+    while i < coordinate:
+        inputUtente = input(f"Inserire la {i+1}° coordinata: ")
+        try:
+            coordinata = int(inputUtente)
+            if(coordinata < 0):
+                print("Coordinata non valida! La coordinata deve essere un numero naturale.")
+            else:
+                tupla[i] = coordinata
+                i += 1
+        except:
+            print("Coordinata non valida")
+    return tupla
 
 def AzzeraTupla(n):
     tupla = []
@@ -9,11 +35,22 @@ def AzzeraTupla(n):
 def StampaTupla(tupla):
     print(f"\nLa tua {len(tupla)}-pla è: ({', '.join(str(x) for x in tupla)})")
 
-def Pairing(tupla):
-    # Bisogna controllare in base al numero di componenti quante volte applicare la funzione di pairing (impostare uno schema ricorsivo)
-    # <X, Y> = 2^X * (2*y + 1) - 1
-    codifica = int((math.pow(2, tupla[0]) * ((2 * tupla[1]) + 1)) - 1) # <- caso più semplice a due coordinate
-    return codifica
+## Versione ricorsiva
+def PairingR(tupla):
+    # <X, Y> = (2^X * (2*Y + 1)) - 1
+    if(len(tupla) == 1):
+        print("Non è possibile codificare solo una coordinata")
+        return 0
+    elif(len(tupla) == 2):
+        codifica = int(((1 << tupla[0]) * ((2 * tupla[1]) + 1)) - 1)
+        return codifica
+    else:
+        coppia = [tupla[len(tupla) - 2], tupla[len(tupla) - 1]]
+        tupla.pop()
+        tupla.pop()
+        codificaCoppia = PairingR(coppia)
+        tupla.append(codificaCoppia)
+        return PairingR(tupla)
 
 def NPrimo(n):
     count = 0
@@ -36,44 +73,52 @@ def NumeriDiGodel(tupla):
     codifica = 1
     for i in range(0, len(tupla)):
         primo = NPrimo(indicePrimo)
-        codifica = codifica * math.pow(primo, tupla[i])
+        codifica = codifica * (primo**tupla[i])
         indicePrimo += 1
     return int(codifica)
 
 print("Codifica e decodifica di n-uple")
 print("------------------------------------------------------------------")
 
-coordinate = int(input("\nInserire il numero di coordinate della n-upla: "))
+tupla = InserisciInput()
+continua = True
 
-tupla = AzzeraTupla(coordinate)
+while continua:
+    StampaTupla(tupla)
 
-i = 0
+    inputValido = False
 
-while i < coordinate:
-    try:
-        coordinata = int(input(f"Inserire la {i+1}° coordinata: "))
-        if(coordinata < 0):
-            print("Coordinata non valida! La coordinata deve essere un numero naturale.")
-        else:
-            tupla[i] = coordinata
-            i += 1
-    except:
-        print("Coordinata non valida")
+    while inputValido == False:
+        print("\nScegliere una funzione:")
+        print("1 - Funzione di pairing")
+        print("2 - Numeri di Gödel")
+        print("3 - Reinserisci input")
+        print("4 - Esci")
 
-StampaTupla(tupla)
+        inputUtente = input("\nScegli una funzione: ")
+        
+        try:
+            idFunzione = int(inputUtente)
+            inputValido = True
+        except:
+            print("La funzione scelta non è valida")
 
-print("\nScegliere il tipo di codifica:")
-print("1 - Funzione di pairing")
-print("2 - Numeri di Gödel")
+    codifica = 0
+    tuplaDaCodificare = tupla
 
-numeroCodifica = int(input(f"\nCodifica in: "))
+    match(idFunzione):
+        case 1:
+            codifica = PairingR(tuplaDaCodificare)
+        case 2:
+            codifica = NumeriDiGodel(tuplaDaCodificare)
+        case 3:
+            tupla = InserisciInput()
+        case 4:
+            continua = False
+            print("\nProgramma terminato.")
+        case _:
+            print("\nCodifica non disponibile")
 
-match(numeroCodifica):
-    case 1:
-        codifica = Pairing(tupla)
-    case 2:
-        codifica = NumeriDiGodel(tupla)
-    case _:
-        print("Codifica non disponibile")
-
-print("\nCodifica:", codifica)
+    if(codifica > 0):
+        print("\nLa codifica è: ", codifica)
+    print("------------------------------------------------------------------")
